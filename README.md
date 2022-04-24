@@ -159,4 +159,4 @@ sudo systemctl status kafka.service
 sudo systemctl stop zookeeper.service
 sudo systemctl stop kafka.service
 ```
-OPTINAL-2 Download Kafka Web UI - Kafdrop
+
