@@ -95,6 +95,10 @@ nohup sudo ./kafka-server-start.sh /data/kafka_2.13-3.1.0/config/server.properti
 ```
 Zookeeper and Kafka should be running mode. If you have a problem you should restart everyone and start new setup.
 
+check kafka is working: 
+```
+/data/kafka_2.13-3.1.0/bin/kafka-topics.sh --list --bootstrap-server localhost:9092 
+```
 
 Create Topic 
 ```
@@ -108,7 +112,7 @@ Read message with consumer
 ```
 ./kafka-console-consumer.sh --topic myTopic --from-beginning --bootstrap-server localhost:9092
 ```
-OPTIONAL - Kafka run as a system service
+#### OPTIONAL - Kafka run as a system service
 ```
 cd /etc/systemd/system
 sudo vi zookeeper.service
@@ -119,8 +123,8 @@ Description=Bootstrapped Zookeeper
 After=syslog.target network.target
 [Service]
 Type=simple
-User=CHANGE_USER
-Group=CHANGE_USER
+User=dtpamdatalake01
+Group=dtpamdatalake01
 ExecStart=/data/kafka_2.13-3.1.0/bin/zookeeper-server-start.sh /data/kafka_2.13-3.1.0/config/zookeeper.properties
 ExecStop=/data/kafka_2.13-3.1.0/bin/zookeeper-server-stop.sh
 [Install]
@@ -136,8 +140,8 @@ Requires=zookeeper.service
 After=zookeeper.service
 [Service]
 Type=simple
-User=CHANGE_USER
-Group=CHANGE_USER
+User=dtpamdatalake01
+Group=dtpamdatalake01
 ExecStart=/data/kafka_2.13-3.1.0/bin/kafka-server-start.sh /data/kafka_2.13-3.1.0/config/server.properties
 ExecStop=/data/kafka_2.13-3.1.0/bin/kafka-server-stop.sh
 [Install]
@@ -160,3 +164,41 @@ sudo systemctl stop zookeeper.service
 sudo systemctl stop kafka.service
 ```
 
+#### OPTIONAL - Install Kafdrop for Kafka Monitoring
+Download Kafdrop jar file.    
+https://github.com/obsidiandynamics/kafdrop/releases  
+Move jar file inside /data/ folder  
+
+Create a service file for kafdrop  
+```
+cd /etc/systemd/system
+sudo vi kafdrop.service
+```
+
+Fill inside with below.  
+```
+[Unit]
+Description=Kafdrop Service
+After=syslog.target network.target
+[Service]
+Type=simple
+User=dtpamdatalake01
+Group=dtpamdatalake01
+ExecStart=sudo java -jar /data/kafdrop-3.29.0.jar --kafka.brokerConnect=localhost:9092
+ExecStop=/bin/kill -15 $MAINPID
+[Install]
+WantedBy=multi-user.target
+```
+
+sudo systemctl daemon-reload  #notifies the system about the changes in the configurations  
+
+enable the service
+```
+sudo systemctl enable kafdrop.service   
+```
+start the service
+```
+sudo systemctl start kafdrop.service
+```
+Check the Kafdrop web UI  
+http://your_ip:9000/
